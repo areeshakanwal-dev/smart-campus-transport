@@ -31,7 +31,7 @@ const pool = new Pool({
   ssl: needsSSL ? { rejectUnauthorized: false } : false,
 });
 
-pool.on('connect', () => console.log('✅ PostgreSQL connected'));
-pool.on('error', (err) => console.error('❌ DB error:', err));
+pool.on('connect', () => console.log(' PostgreSQL connected'));
+pool.on('error', (err) => console.error(' DB error:', err));
 
 module.exports = pool;
