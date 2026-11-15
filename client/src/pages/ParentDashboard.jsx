@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { connectSocket } from '../api/socket';
 import api from '../api/axios';
 
-// Fix Leaflet default icon (broken by bundlers)
+// Fix Leaflet marker icon bug
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -21,16 +21,7 @@ export default function ParentDashboard() {
   const [lastUpdate, setLastUpdate] = useState(null);
   const socketRef = useRef(null);
 
-  // 1. Fetch the bus assigned to this parent's child
-  useEffect(() => {
-    api.get('/students/me').then(({ data }) => {
-      if (data?.bus_id) setBusId(data.bus_id);
-    }).catch(() => {
-      // If /students/me doesn't exist yet, we will manually input a bus ID below for testing
-    });
-  }, []);
-
-  // 2. Connect to socket and listen for live location
+  // Connect to socket and listen for live location
   useEffect(() => {
     if (!busId) return;
     const socket = connectSocket();
@@ -59,7 +50,7 @@ export default function ParentDashboard() {
         <button onClick={logout} className="underline hover:text-gray-200">Logout</button>
       </header>
 
-      {/* Temporary input to test the map since we haven't built student assignment yet */}
+      {/* Temporary input to test the map */}
       {!busId && (
         <div className="p-4 bg-yellow-100 border-b border-yellow-300">
           <p className="text-sm mb-2 text-yellow-800 font-bold">Test Mode: Enter a Bus ID to track</p>
@@ -93,8 +84,20 @@ export default function ParentDashboard() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; OpenStreetMap'
         />
+        {/* HERE IS THE FIXED MARKER WITH THE CUSTOM ICON */}
         {busPos && (
-          <Marker position={[busPos.lat, busPos.lng]}>
+          <Marker 
+            position={[busPos.lat, busPos.lng]} 
+            icon={L.icon({
+              iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+              iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+              shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+              popupAnchor: [1, -34],
+              shadowSize: [41, 41]
+            })}
+          >
             <Popup>Your bus is here</Popup>
           </Marker>
         )}

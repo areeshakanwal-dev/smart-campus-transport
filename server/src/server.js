@@ -38,15 +38,24 @@ console.log('PORT:', process.env.PORT);
 console.log('Mode:', process.env.NODE_ENV);
 
 const http = require('http');
+const { Server } = require('socket.io'); // <-- Added Socket.io
 const app = require('./app');
 const pool = require('./config/db');
+const socketHandler = require('./sockets/socketHandler'); // <-- Added our handler
 
 const PORT = process.env.PORT || 5000;
 
 // Create HTTP server from Express app
 const server = http.createServer(app);
 
-// ⭐ THIS IS THE KEY LINE — keeps the process alive
+// Attach Socket.io
+const io = new Server(server, {
+  cors: { origin: process.env.CLIENT_URL, credentials: true },
+});
+
+// Initialize Socket Handler
+socketHandler(io);
+
 server.listen(PORT, () => {
   console.log('');
   console.log('🚀 Server running on http://localhost:' + PORT);
