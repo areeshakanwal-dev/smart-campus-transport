@@ -66,6 +66,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', require('./routes/auth.routes'));
+app.use('/api/buses', require('./routes/bus.routes'));
 
 // ⭐ 4. 404 handler (goes AFTER all routes)
 app.use((req, res) => {
