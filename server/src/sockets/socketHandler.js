@@ -16,6 +16,13 @@ module.exports = (io) => {
     }
   });
 
+  const io = new Server(server, {
+  cors: { 
+    origin: process.env.CLIENT_URL, 
+    credentials: true 
+  },
+});
+
   io.on('connection', (socket) => {
     console.log(`🔌 ${socket.user.role} connected: ${socket.user.id}`);
 

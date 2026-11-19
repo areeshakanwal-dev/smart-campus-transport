@@ -21,3 +21,4 @@ router.get('/stops', ctrl.listStops);
 router.post('/stops', authorize('admin'), ctrl.createStop);
 
 router.get('/:busId/eta/:stopId', ctrl.getETA);
+router.get('/analytics', authorize('admin'), ctrl.getAnalytics);

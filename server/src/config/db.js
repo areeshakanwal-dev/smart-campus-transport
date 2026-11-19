@@ -1,37 +1,19 @@
-// const { Pool } = require('pg');
-// require('dotenv').config();
-
-// const pool = new Pool({
-//   connectionString: process.env.DATABASE_URL,
-//   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-// });
-
-// pool.on('connect', () => console.log('✅ PostgreSQL connected'));
-// pool.on('error', (err) => console.error('❌ DB error:', err));
-
-// module.exports = pool;
-
 const { Pool } = require('pg');
 require('dotenv').config();
 
-const connectionString = process.env.DATABASE_URL;
-
-// Strip sslmode param — we'll handle SSL explicitly below
-const cleanUrl = connectionString?.replace(/[?&]sslmode=[^&]*/g, '')
-                                 .replace(/[?&]channel_binding=[^&]*/g, '');
-
-// Neon & most cloud Postgres providers require SSL
-const needsSSL =
-  connectionString &&
-  !connectionString.includes('localhost') &&
-  !connectionString.includes('127.0.0.1');
-
 const pool = new Pool({
-  connectionString: cleanUrl,
-  ssl: needsSSL ? { rejectUnauthorized: false } : false,
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : { rejectUnauthorized: false },
+  // These settings fix the Neon connection dropping issue:
+  max: 10, 
+  idleTimeoutMillis: 30000, 
+  connectionTimeoutMillis: 2000, 
 });
 
-pool.on('connect', () => console.log(' PostgreSQL connected'));
-pool.on('error', (err) => console.error(' DB error:', err));
+pool.on('connect', () => console.log('✅ PostgreSQL connected'));
+pool.on('error', (err) => {
+  console.error('❌ Unexpected error on idle client', err);
+  // Don't crash the process, just log it!
+});
 
 module.exports = pool;

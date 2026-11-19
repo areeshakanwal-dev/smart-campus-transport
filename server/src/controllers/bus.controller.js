@@ -147,3 +147,23 @@ exports.getETA = async (req, res) => {
     res.status(500).json({ message: 'Error calculating ETA' });
   }
 };
+
+exports.getAnalytics = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        TO_CHAR(timestamp, 'YYYY-MM-DD') as date,
+        COUNT(*) as count
+      FROM boarding_logs
+      WHERE type = 'board'
+      GROUP BY TO_CHAR(timestamp, 'YYYY-MM-DD')
+      ORDER BY date ASC
+      LIMIT 7
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to fetch analytics' });
+  }
+};
+
