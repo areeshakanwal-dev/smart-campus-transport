@@ -1,3 +1,4 @@
+const { checkGeofence } = require('../utils/geofence');
 const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 
@@ -29,6 +30,13 @@ module.exports = (io) => {
            VALUES ($1, ST_SetSRID(ST_MakePoint($2, $3), 4326), $4, $5)`,
           [busId, lng, lat, speed, accuracy]
         );
+
+                // Check if the bus is near a stop
+        const alert = await checkGeofence(busId, lat, lng);
+        if (alert) {
+          console.log(`🚏 Bus ${busId} is near ${alert.stopName}! Sending alert.`);
+          io.to(`bus:${busId}`).emit('alert:arrival', alert);
+        }
 
         // Broadcast to parents watching this bus
         io.to(`bus:${busId}`).emit('bus:location', {
