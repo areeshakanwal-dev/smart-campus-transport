@@ -13,3 +13,7 @@ router.post('/', authorize('admin'), ctrl.createBus);
 router.patch('/:busId/assign-driver', authorize('admin'), ctrl.assignDriver);
 
 module.exports = router;
+
+router.get('/live', authorize('admin'), ctrl.getLiveBuses);
+
+router.get('/:busId/last-location', ctrl.getBusLastLocation);

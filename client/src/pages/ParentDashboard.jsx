@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
+import api from '../api/axios';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../context/AuthContext';
 import { connectSocket } from '../api/socket';
@@ -21,8 +22,19 @@ export default function ParentDashboard() {
   const [alertMessage, setAlertMessage] = useState(null); // <-- New state for the banner
   const socketRef = useRef(null);
 
+   // Connect to socket and listen for live location
   useEffect(() => {
     if (!busId) return;
+    
+    // 1. Instantly fetch the LAST known location so the map isn't empty
+    api.get(`/buses/${busId}/last-location`)
+      .then(({ data }) => {
+        setBusPos({ lat: data.lat, lng: data.lng });
+        setLastUpdate(new Date(data.recorded_at));
+      })
+      .catch(() => console.log('No previous location yet'));
+
+    // 2. Connect the socket for live updates
     const socket = connectSocket();
     socketRef.current = socket;
     socket.emit('parent:subscribe', { busId });
@@ -34,14 +46,9 @@ export default function ParentDashboard() {
       }
     });
 
-    // Listen for the alert
     socket.on('alert:arrival', (data) => {
       setAlertMessage(`🚌 Bus arriving at ${data.stopName} in ~${Math.round(data.distance)}m`);
-      
-      // Auto-hide the alert after 8 seconds
-      setTimeout(() => {
-        setAlertMessage(null);
-      }, 8000);
+      setTimeout(() => setAlertMessage(null), 8000);
     });
 
     return () => {
