@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import api from '../api/axios';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../context/AuthContext';
 import { connectSocket } from '../api/socket';
+import api from '../api/axios';
 
 // Fix Leaflet marker icon bug
 delete L.Icon.Default.prototype._getIconUrl;
@@ -19,14 +19,27 @@ export default function ParentDashboard() {
   const [busId, setBusId] = useState(null);
   const [busPos, setBusPos] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(null);
-  const [alertMessage, setAlertMessage] = useState(null); // <-- New state for the banner
+  const [alertMessage, setAlertMessage] = useState(null);
   const socketRef = useRef(null);
 
-   // Connect to socket and listen for live location
+  // 1. Fetch the student's bus ID automatically
+  useEffect(() => {
+    api.get('/students/me')
+      .then(({ data }) => {
+        if (data?.bus_id) {
+          setBusId(data.bus_id);
+        }
+      })
+      .catch((err) => {
+        console.log('Could not fetch student data:', err);
+      });
+  }, []);
+
+  // 2. Connect to socket and listen for live location
   useEffect(() => {
     if (!busId) return;
     
-    // 1. Instantly fetch the LAST known location so the map isn't empty
+    // Instantly fetch the LAST known location
     api.get(`/buses/${busId}/last-location`)
       .then(({ data }) => {
         setBusPos({ lat: data.lat, lng: data.lng });
@@ -34,7 +47,6 @@ export default function ParentDashboard() {
       })
       .catch(() => console.log('No previous location yet'));
 
-    // 2. Connect the socket for live updates
     const socket = connectSocket();
     socketRef.current = socket;
     socket.emit('parent:subscribe', { busId });
@@ -67,22 +79,6 @@ export default function ParentDashboard() {
         <button onClick={logout} className="underline hover:text-gray-200">Logout</button>
       </header>
 
-      {/* Yellow test box */}
-      {!busId && (
-        <div className="p-4 bg-yellow-100 border-b border-yellow-300">
-          <p className="text-sm mb-2 text-yellow-800 font-bold">Test Mode: Enter a Bus ID to track</p>
-          <input 
-            type="text" 
-            placeholder="Paste Bus UUID here..." 
-            className="border p-2 rounded w-full max-w-md"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') setBusId(e.target.value);
-            }}
-          />
-        </div>
-      )}
-
-      {/* NEW: The Alert Banner */}
       {alertMessage && (
         <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg z-50 text-lg font-bold animate-bounce">
           {alertMessage}
