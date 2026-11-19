@@ -75,3 +75,30 @@ exports.getBusLastLocation = async (req, res) => {
     res.status(500).json({ message: 'Error fetching location' });
   }
 };
+
+exports.createStop = async (req, res) => {
+  const { name, lat, lng, radius_meters } = req.body;
+  try {
+    const result = await pool.query(
+      `INSERT INTO stops (name, location, radius_meters)
+       VALUES ($1, ST_SetSRID(ST_MakePoint($2, $3), 4326), $4) RETURNING *`,
+      [name, lng, lat, radius_meters || 500]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to create stop' });
+  }
+};
+
+exports.listStops = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, name, ST_Y(location::geometry) as lat, ST_X(location::geometry) as lng, radius_meters 
+      FROM stops
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch stops' });
+  }
+};

@@ -15,5 +15,7 @@ router.patch('/:busId/assign-driver', authorize('admin'), ctrl.assignDriver);
 module.exports = router;
 
 router.get('/live', authorize('admin'), ctrl.getLiveBuses);
-
 router.get('/:busId/last-location', ctrl.getBusLastLocation);
+
+router.get('/stops', ctrl.listStops);
+router.post('/stops', authorize('admin'), ctrl.createStop);
