@@ -21,14 +21,16 @@ export default function ParentDashboard() {
   const [lastUpdate, setLastUpdate] = useState(null);
   const [alertMessage, setAlertMessage] = useState(null);
   const socketRef = useRef(null);
+  const [stopId, setStopId] = useState(null);
+  const [eta, setEta] = useState(null);
 
   // 1. Fetch the student's bus ID automatically
+    // 1. Fetch the student's bus ID and stop ID automatically
   useEffect(() => {
     api.get('/students/me')
       .then(({ data }) => {
-        if (data?.bus_id) {
-          setBusId(data.bus_id);
-        }
+        if (data?.bus_id) setBusId(data.bus_id);
+        if (data?.stop_id) setStopId(data.stop_id); // <-- Add this
       })
       .catch((err) => {
         console.log('Could not fetch student data:', err);
@@ -51,10 +53,17 @@ export default function ParentDashboard() {
     socketRef.current = socket;
     socket.emit('parent:subscribe', { busId });
 
-    socket.on('bus:location', (data) => {
+       socket.on('bus:location', (data) => {
       if (data.busId === busId) {
         setBusPos({ lat: data.lat, lng: data.lng });
         setLastUpdate(new Date());
+        
+        // Fetch ETA every time a new location arrives
+        if (stopId) {
+          api.get(`/buses/${busId}/eta/${stopId}`)
+            .then(({ data }) => setEta(data.eta_minutes))
+            .catch(() => {});
+        }
       }
     });
 
@@ -85,10 +94,13 @@ export default function ParentDashboard() {
         </div>
       )}
 
-      <div className="p-2 text-sm bg-gray-100 text-gray-700 flex justify-between">
+            <div className="p-2 text-sm bg-gray-100 text-gray-700 flex justify-between">
         {busPos ? (
           <>
             <span>Tracking Bus: {busId.substring(0, 8)}...</span>
+            <span className="font-bold text-blue-700">
+              {eta !== null ? `🚌 Arrives in ~${eta} min` : 'Calculating ETA...'}
+            </span>
             <span>
               Last update: {lastUpdate?.toLocaleTimeString()}
               {isStale && <span className="text-red-600 ml-2 font-bold">⚠ Data is stale</span>}

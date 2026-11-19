@@ -102,3 +102,48 @@ exports.listStops = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch stops' });
   }
 };
+
+exports.getETA = async (req, res) => {
+  const { busId, stopId } = req.params;
+  try {
+    // 1. Get last bus location
+    const busRes = await pool.query(`
+      SELECT ST_Y(location::geometry) as lat, ST_X(location::geometry) as lng
+      FROM location_history
+      WHERE bus_id = $1
+      ORDER BY recorded_at DESC LIMIT 1
+    `, [busId]);
+
+    // 2. Get stop location
+    const stopRes = await pool.query(`
+      SELECT ST_Y(location::geometry) as lat, ST_X(location::geometry) as lng
+      FROM stops WHERE id = $1
+    `, [stopId]);
+
+    if (busRes.rows.length === 0 || stopRes.rows.length === 0) {
+      return res.status(404).json({ message: 'Location data missing' });
+    }
+
+    const bus = busRes.rows[0];
+    const stop = stopRes.rows[0];
+
+    // 3. Call OSRM API
+    const osrmUrl = `http://router.project-osrm.org/route/v1/driving/${bus.lng},${bus.lat};${stop.lng},${stop.lat}?overview=false`;
+    
+    const response = await fetch(osrmUrl);
+    const data = await response.json();
+
+    if (data.code !== 'Ok' || data.routes.length === 0) {
+      return res.status(500).json({ message: 'Could not calculate route' });
+    }
+
+    // 4. Return duration in minutes
+    const durationInSeconds = data.routes[0].duration;
+    const durationInMinutes = Math.ceil(durationInSeconds / 60);
+
+    res.json({ eta_minutes: durationInMinutes });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error calculating ETA' });
+  }
+};

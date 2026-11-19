@@ -19,3 +19,5 @@ router.get('/:busId/last-location', ctrl.getBusLastLocation);
 
 router.get('/stops', ctrl.listStops);
 router.post('/stops', authorize('admin'), ctrl.createStop);
+
+router.get('/:busId/eta/:stopId', ctrl.getETA);
