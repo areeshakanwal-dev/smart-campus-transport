@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import AdminSidebar from '../components/AdminSidebar';
+
 import {
   MapContainer,
   TileLayer,
@@ -74,7 +76,7 @@ export default function AdminDashboard() {
       })
       .catch(console.error);
   };
-
+  
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 5000);
@@ -104,149 +106,105 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* <header className="p-4 bg-gray-900 text-white flex justify-between items-center">
-        <h1 className="text-xl font-bold">Admin Fleet Map</h1>
-        <div>
-          <span className="mr-4 text-sm text-gray-300">
-            Logged in as {user.name}
-          </span>
-          <button
-            onClick={logout}
-            className="bg-red-600 px-3 py-1 rounded hover:bg-red-700"
-          >
-            Logout
-          </button>
-        </div>
-      </header> */}
-
-      <div className="flex-1 flex">
-        {/* Sidebar */}
-        <div className="w-72 bg-gray-100 p-4 border-r border-gray-300 overflow-y-auto">
-          <h2 className="font-bold text-lg mb-2">
-            Active Buses ({buses.length})
-          </h2>
-          <ul className="space-y-2 mb-6">
-            {buses.map((bus) => (
-              <li
-                key={bus.id}
-                className="bg-white p-2 rounded shadow text-sm border-l-4 border-blue-500"
-              >
-                <p className="font-bold">{bus.bus_number}</p>
-                <p
-                  className={`text-xs ${bus.lat ? "text-green-600" : "text-red-500"}`}
-                >
-                  {bus.lat ? "🟢 Live" : "🔴 Offline"}
-                </p>
-              </li>
-            ))}
-          </ul>
-
-          <hr className="my-4 border-gray-300" />
-          <h2 className="font-bold text-lg mb-2">Weekly Boarding</h2>
-          <div
-            className="bg-white p-2 rounded shadow mb-6"
-            style={{ height: "180px" }}
-          >
-            {analytics.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={analytics}>
-                  <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-xs text-center text-gray-500 mt-8">
-                No boarding data yet.
-              </p>
-            )}
+    <div className="flex h-screen bg-gray-50">
+      <AdminSidebar />
+      
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        {/* Top Header inside the dashboard */}
+        <header className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
+          <h1 className="text-xl font-bold text-gray-800">Dashboard Overview</h1>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500">Admin User</span>
+            <div className="w-8 h-8 bg-[#1E3A8A] text-white rounded-full flex items-center justify-center font-bold">A</div>
           </div>
-          <hr className="my-4 border-gray-300" />
+        </header>
 
-          <h2 className="font-bold text-lg mb-2">Stops ({stops.length})</h2>
-          <p className="text-xs text-gray-500 mb-2">
-            Click on the map to add a new stop.
-          </p>
+        <div className="flex-1 flex overflow-hidden p-6 gap-6">
+          {/* Left Column: Stats and Chart */}
+          <div className="w-80 flex flex-col gap-6">
+            
+            {/* Quick Stats */}
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+              <h2 className="font-bold text-gray-800 mb-3">Active Buses</h2>
+              <div className="text-3xl font-extrabold text-[#1E3A8A]">{buses.length}</div>
+            </div>
 
-          {newStop && (
-            <div className="bg-yellow-50 p-3 rounded border border-yellow-300 mb-4">
-              <p className="text-sm font-bold mb-2">
-                New Stop at {newStop.lat.toFixed(4)}, {newStop.lng.toFixed(4)}
-              </p>
-              <input
-                type="text"
-                placeholder="Stop Name (e.g. Library)"
-                value={stopName}
-                onChange={(e) => setStopName(e.target.value)}
-                className="w-full p-1 border rounded text-sm mb-2"
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={saveStop}
-                  className="bg-green-600 text-white text-xs px-2 py-1 rounded"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => setNewStop(null)}
-                  className="bg-gray-300 text-xs px-2 py-1 rounded"
-                >
-                  Cancel
-                </button>
+            {/* Chart */}
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex-1">
+              <h2 className="font-bold text-gray-800 mb-4">Weekly Boarding</h2>
+              <div style={{ height: '250px' }}>
+                {analytics.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={analytics}>
+                      <XAxis dataKey="date" tick={{fontSize: 10}} />
+                      <YAxis tick={{fontSize: 10}} allowDecimals={false} />
+                      <Tooltip />
+                      <Bar dataKey="count" fill="#FBBF24" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-xs text-center text-gray-500 mt-8">No data yet.</p>
+                )}
               </div>
             </div>
-          )}
 
-          <ul className="space-y-2">
-            {stops.map((stop) => (
-              <li
-                key={stop.id}
-                className="bg-white p-2 rounded shadow text-sm border-l-4 border-red-500"
-              >
-                <p className="font-bold">{stop.name}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
+            {/* Stops List */}
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 h-64 overflow-y-auto">
+              <h2 className="font-bold text-gray-800 mb-3">Stops ({stops.length})</h2>
+              <ul className="space-y-2">
+                {stops.map((stop) => (
+                  <li key={stop.id} className="text-sm p-2 bg-gray-50 rounded border border-gray-200">
+                    📍 {stop.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
 
-        {/* Map */}
-        <MapContainer center={[33.6844, 73.0479]} zoom={13} style={{ flex: 1 }}>
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution="&copy; OpenStreetMap"
-          />
-
-          <MapClickHandler onMapClick={handleMapClick} />
-
-          {/* Render Buses */}
-          {buses.map(
-            (bus) =>
-              bus.lat &&
-              bus.lng && (
-                <Marker key={`bus-${bus.id}`} position={[bus.lat, bus.lng]}>
-                  <Popup>Bus: {bus.bus_number}</Popup>
+          {/* Right Column: Map */}
+          <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
+            <MapContainer center={[33.6844, 73.0479]} zoom={13} style={{ height: '100%', width: '100%' }}>
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; OpenStreetMap'
+              />
+              <MapClickHandler onMapClick={handleMapClick} />
+              {buses.map((bus) => (
+                bus.lat && bus.lng && (
+                  <Marker key={`bus-${bus.id}`} position={[bus.lat, bus.lng]}>
+                    <Popup>Bus: {bus.bus_number}</Popup>
+                  </Marker>
+                )
+              ))}
+              {stops.map((stop) => (
+                <Marker key={`stop-${stop.id}`} position={[stop.lat, stop.lng]} icon={stopIcon}>
+                  <Popup>Stop: {stop.name}</Popup>
                 </Marker>
-              ),
-          )}
+              ))}
+              {newStop && (
+                <Marker position={[newStop.lat, newStop.lng]} icon={stopIcon} />
+              )}
+            </MapContainer>
 
-          {/* Render Stops */}
-          {stops.map((stop) => (
-            <Marker
-              key={`stop-${stop.id}`}
-              position={[stop.lat, stop.lng]}
-              icon={stopIcon}
-            >
-              <Popup>Stop: {stop.name}</Popup>
-            </Marker>
-          ))}
-
-          {/* Render New Stop Marker */}
-          {newStop && (
-            <Marker position={[newStop.lat, newStop.lng]} icon={stopIcon} />
-          )}
-        </MapContainer>
+            {/* Floating Add Stop Form */}
+            {newStop && (
+              <div className="absolute top-4 right-4 z-[1000] bg-white p-4 rounded-lg shadow-xl border border-gray-200 w-64">
+                <p className="text-sm font-bold mb-2 text-gray-700">New Stop</p>
+                <input 
+                  type="text" 
+                  placeholder="Stop Name" 
+                  value={stopName}
+                  onChange={(e) => setStopName(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded mb-2 text-sm focus:ring-2 focus:ring-[#1E3A8A] outline-none"
+                />
+                <div className="flex gap-2">
+                  <button onClick={saveStop} className="bg-[#1E3A8A] text-white text-xs px-3 py-1.5 rounded flex-1">Save</button>
+                  <button onClick={() => setNewStop(null)} className="bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded flex-1">Cancel</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
