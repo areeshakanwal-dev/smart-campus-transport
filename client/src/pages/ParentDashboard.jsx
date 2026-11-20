@@ -100,12 +100,12 @@ export default function ParentDashboard() {
 
   return (
     <div className="h-screen flex flex-col relative">
-      <header className="p-4 bg-blue-600 text-white flex justify-between items-center">
+      {/* <header className="p-4 bg-blue-600 text-white flex justify-between items-center">
         <h1 className="text-xl font-bold">Parent — {user.name}</h1>
         <button onClick={logout} className="underline hover:text-gray-200">
           Logout
         </button>
-      </header>
+      </header> */}
 
       {alertMessage && (
         <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg z-50 text-lg font-bold animate-bounce">

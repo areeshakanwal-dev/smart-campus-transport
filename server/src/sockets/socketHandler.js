@@ -1,7 +1,7 @@
-const { checkGeofence } = require('../utils/geofence');
 const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 
+// Notice: We receive 'io' as a parameter here. We do NOT declare it again.
 module.exports = (io) => {
   // Authenticate the socket connection using JWT
   io.use((socket, next) => {
@@ -15,13 +15,6 @@ module.exports = (io) => {
       next(new Error('Invalid token'));
     }
   });
-
-  const io = new Server(server, {
-  cors: { 
-    origin: process.env.CLIENT_URL, 
-    credentials: true 
-  },
-});
 
   io.on('connection', (socket) => {
     console.log(`🔌 ${socket.user.role} connected: ${socket.user.id}`);
@@ -38,30 +31,30 @@ module.exports = (io) => {
           [busId, lng, lat, speed, accuracy]
         );
 
-                // Check if the bus is near a stop
+        io.to(`bus:${busId}`).emit('bus:location', {
+          busId, lat, lng, speed, accuracy, timestamp: Date.now(),
+        });
+
+        // Check Geofence
+        const { checkGeofence } = require('../utils/geofence');
         const alert = await checkGeofence(busId, lat, lng);
         if (alert) {
           console.log(`🚏 Bus ${busId} is near ${alert.stopName}! Sending alert.`);
           io.to(`bus:${busId}`).emit('alert:arrival', alert);
         }
 
-        // Broadcast to parents watching this bus
-        io.to(`bus:${busId}`).emit('bus:location', {
-          busId, lat, lng, speed, accuracy, timestamp: Date.now(),
-        });
       } catch (err) {
         console.error('Location save error:', err);
       }
     });
 
-    // Parent subscribes to a specific bus
+    // Parent subscribes
     socket.on('parent:subscribe', ({ busId }) => {
       if (socket.user.role !== 'parent') return;
       socket.join(`bus:${busId}`);
       console.log(`👨‍👩‍👧 Parent subscribed to bus ${busId}`);
     });
 
-    // Parent unsubscribes
     socket.on('parent:unsubscribe', ({ busId }) => {
       socket.leave(`bus:${busId}`);
     });

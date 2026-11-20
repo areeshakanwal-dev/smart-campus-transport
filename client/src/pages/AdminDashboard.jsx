@@ -105,7 +105,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="h-screen flex flex-col">
-      <header className="p-4 bg-gray-900 text-white flex justify-between items-center">
+      {/* <header className="p-4 bg-gray-900 text-white flex justify-between items-center">
         <h1 className="text-xl font-bold">Admin Fleet Map</h1>
         <div>
           <span className="mr-4 text-sm text-gray-300">
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
             Logout
           </button>
         </div>
-      </header>
+      </header> */}
 
       <div className="flex-1 flex">
         {/* Sidebar */}
