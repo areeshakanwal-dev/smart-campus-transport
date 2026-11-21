@@ -74,6 +74,7 @@ import DriverManagement from './pages/admin/DriverManagement';
 // Driver & Parent Pages
 import DriverDashboard from './pages/DriverDashboard';
 import ParentDashboard from './pages/ParentDashboard';
+import ParentManagement from './pages/admin/ParentManagement';
 
 
 
@@ -100,6 +101,7 @@ export default function App() {
             <Route path="drivers" element={<DriverManagement />} />
             <Route path="buses" element={<BusManagement />} />
             <Route path="fleet" element={<LiveFleet />} />
+            <Route path="parents" element={<ParentManagement />} />
             {/* <Route path="students" element={<StudentManagement />} /> */}
             {/* <Route path="live-fleet" element={<LiveFleet />} /> */}
           </Route>
